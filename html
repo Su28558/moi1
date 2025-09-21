@@ -1,0 +1,298 @@
+import React, { useEffect, useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { ArrowRight, Mail, Phone, MapPin, ChevronRight } from "lucide-react";
+
+// --- Helper variants for repeatable animations ("same effects" vibe) ---
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
+};
+
+const fade = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { duration: 0.8, ease: "easeOut" } },
+};
+
+const stagger = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.08 } },
+};
+
+// --- Sticky Header that compresses on scroll (common in Wix templates) ---
+function Header() {
+  const { scrollY } = useScroll();
+  const height = useTransform(scrollY, [0, 200], [96, 64]);
+  const bg = useTransform(scrollY, [0, 200], ["rgba(255,255,255,0)", "rgba(255,255,255,0.9)"]);
+  const blur = useTransform(scrollY, [0, 200], ["blur(0px)", "blur(6px)"]);
+
+  return (
+    <motion.header style={{ height, backgroundColor: bg, backdropFilter: blur }} className="fixed top-0 inset-x-0 z-50 border-b/0 supports-[backdrop-filter]:backdrop-blur-md">
+      <div className="mx-auto max-w-7xl h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        <a href="#" className="font-semibold tracking-tight text-xl">Dein&nbsp;Name</a>
+        <nav className="hidden md:flex gap-8 text-sm">
+          <a href="#menu" className="hover:opacity-70 transition">Leistungen</a>
+          <a href="#about" className="hover:opacity-70 transition">Über mich</a>
+          <a href="#gallery" className="hover:opacity-70 transition">Arbeiten</a>
+          <a href="#contact" className="hover:opacity-70 transition">Kontakt</a>
+        </nav>
+        <a href="#contact" className="inline-flex items-center gap-2 rounded-2xl px-4 py-2 border text-sm hover:shadow-sm transition">
+          Anfragen <ArrowRight size={16} />
+        </a>
+      </div>
+    </motion.header>
+  );
+}
+
+// --- Hero with parallax image + subtle entrance animation ---
+function Hero() {
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
+  const y = useTransform(scrollYProgress, [0, 1], [0, -80]); // parallax like Wix backgrounds
+
+  return (
+    <section ref={ref} className="relative pt-40 pb-24 lg:pt-48 lg:pb-32 overflow-hidden">
+      <motion.div
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, amount: 0.3 }}
+        variants={stagger}
+        className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center"
+      >
+        <motion.div variants={fadeUp}>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold leading-tight tracking-tight">
+            Kreatives Studio für <span className="underline decoration-2 underline-offset-4">Brand & Web</span>
+          </h1>
+          <p className="mt-6 text-base/7 text-neutral-600 max-w-xl">
+            Modernes, ruhiges Design mit weichen Übergängen, Micro‑Interactions und sanften Scroll‑Effekten – inspiriert vom Wix‑Template (3733) und für dein Portfolio adaptiert.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <a href="#menu" className="rounded-2xl px-5 py-3 text-sm font-medium border hover:shadow">
+              Leistungen ansehen
+            </a>
+            <a href="#contact" className="rounded-2xl px-5 py-3 text-sm font-medium bg-black text-white hover:opacity-90">
+              Projekt anfragen
+            </a>
+          </div>
+        </motion.div>
+        <motion.div variants={fadeUp} className="relative">
+          <motion.div style={{ y }} className="aspect-[4/3] w-full rounded-3xl overflow-hidden shadow-xl">
+            <img
+              src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=1600&auto=format&fit=crop"
+              alt="Hero"
+              className="w-full h-full object-cover"
+            />
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0, transition: { delay: 0.2, duration: 0.6 } }}
+            viewport={{ once: true }}
+            className="absolute -bottom-6 -left-6 bg-white/70 backdrop-blur rounded-2xl px-4 py-3 shadow"
+          >
+            <span className="text-xs uppercase tracking-wider">Seit 2025</span>
+          </motion.div>
+        </motion.div>
+      </motion.div>
+
+      {/* marquee strip (auto-scroll) */}
+      <div className="mt-16 border-y bg-neutral-50">
+        <div className="relative overflow-hidden">
+          <motion.div
+            initial={{ x: 0 }}
+            animate={{ x: [0, -800] }}
+            transition={{ repeat: Infinity, repeatType: "loop", duration: 18, ease: "linear" }}
+            className="flex gap-12 py-4 text-sm font-medium uppercase tracking-wider text-neutral-600"
+          >
+            {["Brand Strategy", "UX Writing", "Copywriting", "Webflow/React", "Motion Design", "Design Systeme", "Art Direction"].map((t, i) => (
+              <span key={i} className="flex items-center gap-3">
+                {t} <ChevronRight size={16} />
+              </span>
+            ))}
+            {["Brand Strategy", "UX Writing", "Copywriting", "Webflow/React", "Motion Design", "Design Systeme", "Art Direction"].map((t, i) => (
+              <span key={"dup" + i} className="flex items-center gap-3">
+                {t} <ChevronRight size={16} />
+              </span>
+            ))}
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// --- Services / Menu grid with entrance + hover zoom ---
+function Services() {
+  const items = [
+    { title: "UX‑Writing", desc: "Mikrotexte, Tonalität & klare Nutzerführung.", img: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&auto=format&fit=crop&w=1600" },
+    { title: "Copywriting", desc: "Konzepte & conversion‑starke Headlines.", img: "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?q=80&auto=format&fit=crop&w=1600" },
+    { title: "Webdesign", desc: "Responsive Layouts, Systeme & Prototypen.", img: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&auto=format&fit=crop&w=1600" },
+    { title: "Motion & Interactions", desc: "Feine Übergänge, Parallax & Micro‑Animations.", img: "https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?q=80&auto=format&fit=crop&w=1600" },
+  ];
+
+  return (
+    <section id="menu" className="py-24 lg:py-32">
+      <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.2 }} variants={stagger} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <motion.h2 variants={fadeUp} className="text-3xl lg:text-4xl font-semibold">Leistungen</motion.h2>
+        <motion.p variants={fadeUp} className="mt-4 text-neutral-600 max-w-2xl">Kuratiert wie ein Menü – modular und kombinierbar.</motion.p>
+        <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {items.map((it, idx) => (
+            <motion.a
+              key={idx}
+              href="#contact"
+              className="group relative rounded-3xl overflow-hidden border bg-white"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: idx * 0.05, duration: 0.5 }}
+            >
+              <div className="aspect-[4/5] overflow-hidden">
+                <img src={it.img} alt={it.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              </div>
+              <div className="p-5">
+                <div className="font-medium">{it.title}</div>
+                <div className="text-sm text-neutral-600 mt-1">{it.desc}</div>
+              </div>
+            </motion.a>
+          ))}
+        </div>
+      </motion.div>
+    </section>
+  );
+}
+
+// --- About section with split layout + soft reveal ---
+function About() {
+  return (
+    <section id="about" className="py-24 bg-neutral-50">
+      <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.2 }} variants={stagger} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center">
+        <motion.div variants={fadeUp}>
+          <h3 className="text-2xl lg:text-3xl font-semibold">Ruhiges, präzises Design</h3>
+          <p className="mt-4 text-neutral-600">
+            Fokus auf klare Typografie, großzügige Abstände und subtile Interaktionen. Die Animationen sind leichtgewichtig (GPU‑freundlich) und folgen einer natürlichen Ease‑Out‑Kurve – so wie du es von dem angegebenen Wix‑Template kennst.
+          </p>
+          <ul className="mt-6 space-y-2 text-neutral-700 text-sm">
+            <li>• Sticky Header mit sanfter Kompression</li>
+            <li>• Parallax‑Hero & On‑Scroll‑Reveal</li>
+            <li>• Hover‑Zoom in Karten/Galerien</li>
+            <li>• Marquee‑Leiste (Loop)</li>
+          </ul>
+        </motion.div>
+        <motion.div variants={fade} className="aspect-[4/3] rounded-3xl overflow-hidden shadow-xl">
+          <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&auto=format&fit=crop&w=1600" alt="Studio" className="w-full h-full object-cover" />
+        </motion.div>
+      </motion.div>
+    </section>
+  );
+}
+
+// --- Gallery with staggered entrance + subtle tilt on hover ---
+function Gallery() {
+  const images = [
+    "https://images.unsplash.com/photo-1542744094-24638eff58bb?q=80&auto=format&fit=crop&w=1600",
+    "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&auto=format&fit=crop&w=1600",
+    "https://images.unsplash.com/photo-1529336953121-4a52df9aa97b?q=80&auto=format&fit=crop&w=1600",
+    "https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&auto=format&fit=crop&w=1600",
+    "https://images.unsplash.com/photo-1487014679447-9f8336841d58?q=80&auto=format&fit=crop&w=1600",
+    "https://images.unsplash.com/photo-1552581234-26160f608093?q=80&auto=format&fit=crop&w=1600",
+  ];
+
+  return (
+    <section id="gallery" className="py-24 lg:py-32">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <motion.h3 initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-3xl lg:text-4xl font-semibold">
+          Ausgewählte Arbeiten
+        </motion.h3>
+        <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {images.map((src, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.05, duration: 0.5 }}
+              className="group relative overflow-hidden rounded-3xl border bg-white"
+            >
+              <div className="aspect-[4/3] overflow-hidden">
+                <img src={src} alt="Projekt" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+              </div>
+              <div className="p-4 flex items-center justify-between text-sm">
+                <span>Projekt {i + 1}</span>
+                <ArrowRight size={16} />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// --- Contact CTA ---
+function Contact() {
+  return (
+    <section id="contact" className="py-24 bg-neutral-50">
+      <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.2 }} variants={stagger} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <motion.div variants={fadeUp} className="rounded-3xl border bg-white p-8 md:p-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+          <div>
+            <h3 className="text-2xl font-semibold">Lass uns über dein Projekt sprechen</h3>
+            <p className="mt-2 text-neutral-600 max-w-xl">Kurze Mail genügt – ich melde mich mit Terminvorschlägen und ersten Ideen.</p>
+            <div className="mt-4 flex flex-wrap gap-6 text-sm text-neutral-700">
+              <span className="inline-flex items-center gap-2"><Mail size={16}/> hallo@deinname.de</span>
+              <span className="inline-flex items-center gap-2"><Phone size={16}/> +49 160 000000</span>
+              <span className="inline-flex items-center gap-2"><MapPin size={16}/> Berlin</span>
+            </div>
+          </div>
+          <a href="mailto:hallo@deinname.de" className="inline-flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-medium bg-black text-white hover:opacity-90">
+            Nachricht senden <ArrowRight size={16} />
+          </a>
+        </motion.div>
+      </motion.div>
+    </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="py-10">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex items-center justify-between text-sm text-neutral-600">
+        <span>© {new Date().getFullYear()} Dein Name</span>
+        <div className="flex gap-6">
+          <a href="#" className="hover:opacity-70">Impressum</a>
+          <a href="#" className="hover:opacity-70">Datenschutz</a>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+export default function Page() {
+  // Smooth scroll behavior like Wix
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      document.documentElement.style.scrollBehavior = "smooth";
+    }
+  }, []);
+
+  return (
+    <div className="font-sans text-neutral-900 bg-white">
+      {/* Page progress indicator */}
+      <motion.div className="fixed top-0 left-0 right-0 h-1 z-[60] bg-black/10">
+        <motion.div
+          className="h-full bg-black"
+          style={{ scaleX: useScroll().scrollYProgress, transformOrigin: "0% 50%" }}
+        />
+      </motion.div>
+
+      <Header />
+      <main>
+        <Hero />
+        <Services />
+        <About />
+        <Gallery />
+        <Contact />
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+// Tailwind utilities are assumed available by the environment (ChatGPT Canvas). If you export for Vite/Next, include Tailwind + framer-motion.
